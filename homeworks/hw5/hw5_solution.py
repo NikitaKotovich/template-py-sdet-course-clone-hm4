@@ -31,7 +31,7 @@ def to_list(s: str) -> list:
 
 def formatting(array: list, s1: str, s2: str) -> str:
     a = " ".join(array)
-    b = "Hello, {a}! {s1} to {s2}".format(a=a, s1=s1, s2=s2)
+    b = f"Hello, {a}! {s1} to {s2}"
     return b
 
 
