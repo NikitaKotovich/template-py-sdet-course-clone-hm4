@@ -1,7 +1,11 @@
+from .currency import CurrencyConverter
+
+
 class Bank:
     def __init__(self):
         self.client = {}
         self.deposit = {}
+        self.currency_converter = CurrencyConverter()
 
     def register_client(self, client_id, name):
         if client_id in self.client:
@@ -37,3 +41,6 @@ class Bank:
         final_amount = self.calc_interest_rate(client_id)
         del self.deposit[client_id]
         return final_amount
+
+    def exchange_currency(self, from_curr, amount, to_curr):
+        return self.currency_converter.convert(from_curr, amount, to_curr)
