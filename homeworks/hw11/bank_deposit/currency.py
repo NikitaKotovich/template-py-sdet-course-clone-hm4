@@ -1,10 +1,7 @@
 class CurrencyConverter:
 
     def __init__(self, exchange_rates=None):
-        if exchange_rates is None:
             self.exchange_rates = {'BYN': 1.0, 'USD': 3.2677, 'EUR': 3.399}
-        else:
-            self.exchange_rates = exchange_rates
 
     def convert(self, from_curr, amount, to_curr):
         if from_curr not in self.exchange_rates:
