@@ -1,5 +1,5 @@
 def work_with_file(path):
-    with open(path, 'r') as file:
+    with open(path, 'r', encoding='utf-8') as file:
         content_lines = file.readlines()
     line_count = len(content_lines)
     word_count = 0
@@ -14,7 +14,7 @@ def work_with_file(path):
         f'Word count: {word_count}\n'
         f'Letter count: {letter_count}\n'
     )
-    with open(path, 'a') as file:
+    with open(path, 'a', encoding='utf-8') as file:
         file.write(output_text)
     print(output_text)
 

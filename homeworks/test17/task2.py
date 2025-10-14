@@ -9,10 +9,7 @@ assert number(10) == 100
 
 
 def checknumber(n):
-    if n % 2 == 0:
-        return True
-    else:
-        return False
+    return n % 2 == 0
 
 
 assert checknumber(2) is True
