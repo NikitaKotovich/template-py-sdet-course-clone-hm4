@@ -5,6 +5,8 @@ def add_one(numbers):
             return numbers
         numbers[i] = 0
     return [1] + numbers
+
+
 assert add_one([9]) == [1, 0]
 assert add_one([1, 2, 3]) == [1, 2, 4]
 assert add_one([1, 1, 9]) == [1, 2, 0]
