@@ -1,8 +1,8 @@
 variable = "123456789012345"
-print(variable[0])
-print(variable[-1])
-print(variable[2])
-print(variable[-3])
-print(len(variable))
-print(variable[::-1])
-print(variable[:8])
+assert variable[0] == "1"
+assert variable[-1] == "5"
+assert variable[2] == "3"
+assert variable[-3] == "3"
+assert len(variable) == 15
+assert variable[::-1] == "543210987654321"
+assert variable[:8] == "12345678"
