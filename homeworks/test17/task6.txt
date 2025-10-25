@@ -1,0 +1,3 @@
+String count: 0
+Word count: 0
+Letter count: 0
