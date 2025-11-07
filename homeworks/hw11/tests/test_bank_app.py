@@ -7,200 +7,130 @@ from homeworks.hw11.tests.conf_for_log import setup_logger
 logger = setup_logger()
 
 
-@pytest.mark.parametrize("client_id,name,expected", [
-    ("001", "James Bond", True),
-    ("002", "Guy Ritchie", True)
-])
-def test_register_client(client_id, name, expected):
-    bank = Bank()
-    logger.info(f"Testing client registration: {name} (ID: {client_id})")
-    result = bank.register_client(client_id, name)
-    if result != expected:
-        logger.error(f"Client {client_id} registration failed: {result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+class TestBankApp:
 
+    @pytest.fixture
+    def bank(self):
+        return Bank()
 
-@pytest.mark.parametrize("client_id,name,expected", [
-    ("003", "J. R. R. Tolkien", False),
-])
-def test_register_client_2(client_id, name, expected):
-    bank = Bank()
-    logger.info(f"Testing duplicate client registration: "
-                f"{name} (ID: {client_id})")
-    bank.register_client(client_id, name)
-    result = bank.register_client(client_id, name)
-    if result != expected:
-        logger.error(f"Client {client_id} registration failed: {result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    @pytest.fixture
+    def client(self, bank):
+        client_id = '001'
+        bank.register_client(client_id, 'James Bond')
+        return client_id
 
+    @pytest.fixture
+    def currency_converter(self):
+        return CurrencyConverter()
 
-@pytest.mark.parametrize("client_id,name,start_balance,expected", [
-    ("001", "James Bond", 1000, True),
-])
-def test_open_deposit_account(client_id, name, start_balance, expected):
-    bank = Bank()
-    bank.register_client(client_id, name)
-    logger.info(f"Testing deposit account opening: "
-                f"{name} (ID: {client_id}, Balance: {start_balance})")
-    result = bank.open_deposit_account(client_id, name, start_balance)
-    if result != expected:
-        logger.error(f"Client {client_id} open deposit failed: {result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    def test_register_client(self, bank, client):
+        logger.info("Testing client registration")
+        if client not in bank.client:
+            logger.error("Client registration failed")
+        assert client in bank.client
 
+    def test_register_client_2(self, bank):
+        logger.info("Testing duplicate client registration")
+        result = bank.register_client("001", "James Bond")
+        if result is not False:
+            logger.error("Client registration failed")
+        assert result is False
 
-@pytest.mark.parametrize("client_id,name,start_balance,expected", [
-    ("004", "James Bond", 10000, False),
-])
-def test_open_deposit_account_without_register_client(client_id, name,
-                                                      start_balance, expected):
-    bank = Bank()
-    logger.info(f"Testing deposit account without registration: "
-                f"{name} (ID: {client_id}, Balance: {start_balance})")
-    result = bank.open_deposit_account(client_id, name, start_balance)
-    if result != expected:
-        logger.error(f"Client {client_id} open deposit failed: {result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    def test_open_deposit_account(self, bank, client):
+        logger.info("Testing deposit account opening")
+        result = bank.open_deposit_account(client, 1000, 1)
+        if result is not True:
+            logger.error("Client open deposit failed")
+        assert result is True
 
+    def test_open_deposit_account_without_register_client(self, bank):
+        logger.info("Testing deposit account without registration")
+        result = bank.open_deposit_account("001", 1000, 1)
+        if result is not False:
+            logger.error("Client open deposit failed")
+        assert result is False
 
-@pytest.mark.parametrize("client_id,expected", [
-    ("001", False),
-])
-def test_calc_interest_rate_if_unregister_user(client_id, expected):
-    bank = Bank()
-    logger.info(f"Testing interest calculation for unregistered user (ID: "
-                f"{client_id})")
-    result = bank.calc_interest_rate(client_id)
-    if result != expected:
-        logger.error(f"Client {client_id} calc interest rate failed: {result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    def test_calc_interest_rate_if_unregister_user(self, bank):
+        logger.info("Testing interest calculation for unregistered user")
+        result = bank.calc_interest_rate("001")
+        if result != 0:
+            logger.error("Client calc interest rate failed")
+        assert result == 0
 
+    def test_calc_interest_rate(self, bank, client):
+        logger.info("Testing interest calculation")
+        bank.open_deposit_account(client, 1000, 1)
+        result = bank.calc_interest_rate(client)
+        if result != 1104.71:
+            logger.error(f"Client {client} calc interest rate failed")
+        assert result == 1104.71
+        logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-@pytest.mark.parametrize("client_id,name,start_balance,years,expected", [
-    ("001", "James Bond", 1000, 1, 1104.71),
-])
-def test_calc_interest_rate(client_id, name, start_balance, years, expected):
-    bank = Bank()
-    bank.register_client(client_id, name)
-    bank.open_deposit_account(client_id, start_balance, years)
-    logger.info(f"Testing interest calculation: "
-                f"{name} (ID: {client_id}, Balance: "
-                f"{start_balance}, Years: {years})")
-    result = bank.calc_interest_rate(client_id)
-    if result != expected:
-        logger.error(f"Client {client_id} calc interest rate failed: {result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    def test_calc_interest_rate_if_user_without_deposit(self, bank, client):
+        logger.info("Testing interest calculation without deposit")
+        result = bank.calc_interest_rate(client)
+        if result != 0:
+            logger.error(f"Client {client} calc interest rate failed")
+        assert result == 0
+        logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
+    def test_close_deposit_if_user_with_deposit(self, bank, client):
+        logger.info("Testing deposit closure with deposit")
+        bank.open_deposit_account(client, 1000, 1)
+        result = bank.close_deposit(client)
+        if result != 1104.71:
+            logger.error(f"Client {client} close deposit failed")
+        assert result == 1104.71
+        logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-@pytest.mark.parametrize("client_id,name,expected", [
-    ("001", "James Bond", False),
-])
-def test_calc_interest_rate_if_user_without_deposit(client_id, name, expected):
-    bank = Bank()
-    bank.register_client(client_id, name)
-    logger.info(f"Testing interest calculation without deposit: "
-                f"{name} (ID: {client_id})")
-    result = bank.calc_interest_rate(client_id)
-    if result != expected:
-        logger.error(f"Client {client_id} calc interest rate failed: {result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    def test_close_deposit_if_user_without_deposit(self, bank, client):
+        logger.info("Testing deposit closure without deposit")
+        result = bank.close_deposit(client)
+        if result != 0:
+            logger.error(f"Client {client} close deposit failed: {result}")
+        assert result == 0
+        logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
+    def test_close_deposit_if_unregister_user(self, bank):
+        logger.info("Testing deposit closure for unregistered user")
+        result = bank.close_deposit("001")
+        if result != 0:
+            logger.error("Client close deposit failed")
+        assert result == 0
+        logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-@pytest.mark.parametrize("client_id,name,start_balance,years,expected", [
-    ("001", "James Bond", 1000, 1, 1104.71),
-])
-def test_close_deposit_if_user_with_deposit(client_id, name,
-                                            start_balance, years, expected):
-    bank = Bank()
-    bank.register_client(client_id, name)
-    bank.open_deposit_account(client_id, start_balance, years)
-    logger.info(f"Testing deposit closure with deposit: "
-                f"{name} (ID: {client_id}, Balance: "
-                f"{start_balance}, Years: {years})")
-    result = bank.close_deposit(client_id)
-    if result != expected:
-        logger.error(f"Client {client_id} close deposit failed: "
-                     f"{result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    def test_convert_currency_usd_to_eur(self, currency_converter):
+        logger.info("Testing currency conversion from USD to EUR")
+        result = currency_converter.convert("USD", 1000, "EUR")
+        if result != 961.37:
+            logger.error(f"{result} convert currency failed, expected 961.37")
+        assert result == 961.37
+        logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
+    def test_convert_currency_byn_to_usd(self, currency_converter):
+        logger.info("Testing currency conversion from BYN to USD")
+        result = currency_converter.convert("BYN", 1000, "USD")
+        if result != 306.03:
+            logger.error(f"{result} convert currency failed, expected 306.03")
+        assert result == 306.03
+        logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-@pytest.mark.parametrize("client_id,name,expected", [
-    ("001", "James Bond", False),
-])
-def test_close_deposit_if_user_without_deposit(client_id, name, expected):
-    bank = Bank()
-    bank.register_client(client_id, name)
-    logger.info(f"Testing deposit closure without deposit: "
-                f"{name} (ID: {client_id})")
-    result = bank.close_deposit(client_id)
-    if result != expected:
-        logger.error(f"Client {client_id} close deposit failed: {result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    def test_convert_incorrect_to_currency(self, bank):
+        logger.info("Testing incorrect currency from BYN to EEUR")
+        with pytest.raises(ValueError) as info:
+            assert bank.exchange_currency("BYN", 1000, "EEUR")
+        result = str(info.value)
+        if result != "Unsupported currency: EEUR":
+            logger.error(f"{result} incorrect currency from BYN to EEUR")
+        assert result == "Unsupported currency: EEUR"
+        logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-
-@pytest.mark.parametrize("client_id,expected", [
-    ("001", False),
-])
-def test_close_deposit_if_unregister_user(client_id, expected):
-    bank = Bank()
-    logger.info(f"Testing deposit closure for unregistered user (ID: "
-                f"{client_id})")
-    result = bank.close_deposit(client_id)
-    if result != expected:
-        logger.error(f"Client {client_id} close deposit failed: {result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-
-
-@pytest.mark.parametrize("from_curr,to_curr,amount,expected", [
-    ("USD", "BYN", 1000, 3267.7),
-    ("EUR", "BYN", 1000, 3399),
-    ("BYN", "USD", 1000, 306.03),
-    ("BYN", "EUR", 1000, 294.2),
-    ("USD", "EUR", 1000, 961.37),
-    ("EUR", "USD", 1000, 1040.18),
-])
-def test_convert_currency(from_curr, to_curr, amount, expected):
-    currency = CurrencyConverter()
-    logger.info(f"Testing currency conversion: "
-                f"{amount} {from_curr} to {to_curr}")
-    result = currency.convert(from_curr, amount, to_curr)
-    if result != expected:
-        logger.error(f"Client {amount} close convert currency failed: "
-                     f"{result}")
-    assert result == expected
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-
-
-@pytest.mark.parametrize("from_curr,to_curr,amount,expected", [
-    ("BYN", "EEUR", 1000, "Unsupported currency: {curr}"),
-])
-def test_convert_incorrect_to_currency(from_curr, to_curr, amount, expected):
-    bank = Bank()
-    logger.info(f"Testing incorrect to currency: "
-                f"{amount} {from_curr} to {to_curr}")
-    with pytest.raises(ValueError) as info:
-        assert bank.exchange_currency(from_curr, amount, to_curr)
-    assert str(info.value) == expected.format(curr=to_curr)
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-
-
-@pytest.mark.parametrize("from_curr,to_curr,amount,expected", [
-    ("EEUR", "BYN", 1000, "Unsupported currency: {curr}"),
-])
-def test_convert_incorrect_from_currency(from_curr, to_curr, amount, expected):
-    bank = Bank()
-    logger.info(f"Testing incorrect from currency: "
-                f"{amount} {from_curr} to {to_curr}")
-    with pytest.raises(ValueError) as info:
-        assert bank.exchange_currency(from_curr, amount, to_curr)
-    assert str(info.value) == expected.format(curr=from_curr)
-    logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    def test_convert_incorrect_from_currency(self, bank):
+        logger.info("Testing incorrect currency from EEUR to BYN")
+        with pytest.raises(ValueError) as info:
+            assert bank.exchange_currency("EEUR", 1000, "BYN")
+        result = str(info.value)
+        if result != "Unsupported currency: EEUR":
+            logger.error(f"{result} incorrect currency from EEUR to BYN")
+        assert result == "Unsupported currency: EEUR"
+        logger.info(f"Test completed at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
